@@ -1,6 +1,6 @@
 ## My Project
 
-TODO: Fill this README out!
+**Implementing Enterprise Service Mesh on AWS EKS Using Solo.io's Gloo Platform**
 
 Be sure to:
 
