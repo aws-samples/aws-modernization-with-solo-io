@@ -14,7 +14,7 @@ Let's conclude this workshop by looking at the Gloo Dashboard again and explorin
      meshctl dashboard
      ```
   
-2. The homepage shows an at-a-glance look at the health of workspaces and clusters that make up your Gloo setup. In this workshop, we only used a single cluster and a single workspace, but Gloo Platform is intented to scale to multiple clusters and provide isolation between teams using Workspaces. 
+2. The homepage shows an at-a-glance look at the health of workspaces and clusters that make up your Gloo setup. In this workshop, we only used a single cluster and a single workspace, but Gloo Platform is intended to scale to multiple clusters and provide isolation between teams using Workspaces. 
 
    ![](/images/dashboard-home.png)
 

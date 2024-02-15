@@ -8,7 +8,7 @@ weight: 4
 
 ![Gloo Platform EKS Workshop Architecture Lab 3](/images/gloo-platform-eks-workshop-lab3.png)
 
-1. Lets see how easy it is to expose another application. This time, we will match on URI **prefix: /products** and send to the productcatalogservice application.
+1. Let's see how easy it is to expose another application. This time, we will match on URI **prefix: /products** and send to the productcatalogservice application.
 
     ```yaml
     kubectl apply -f - <<EOF
@@ -39,14 +39,14 @@ weight: 4
     EOF
     ```
 
-2. Get products from the Product Catalog API
+2. Get products from the Product Catalog API.
 
     ```sh
     curl $GLOO_GATEWAY/products
     ```
    ![Expected Output](/images/products_output.png)
 
-3. Next, lets route to an endpoint (http://httpbin.org) that is external to the cluster. **ExternalService** resource defines a service that exists outside of the mesh. ExternalServices provide a mechanism to tell Gloo Platform about its existance and how it should be communicated with. Once an ExternalService is created, a **RouteTable** can be used to send traffic to it. In this example, we will send traffic on URI **prefix: /httpbin** to this external service.
+3. Next, let's route to an endpoint (http://httpbin.org) that is external to the cluster. **ExternalService** resource defines a service that exists outside of the mesh. ExternalService provides a mechanism to tell Gloo Platform about its existance and how it should be communicated with. Once an ExternalService is created, a **RouteTable** can be used to send traffic to it. In this example, we will send traffic on URI **prefix: /httpbin** to this external service.
 
     ```yaml
     kubectl apply -f - <<EOF
@@ -101,7 +101,7 @@ weight: 4
     ```sh
     curl -v $GLOO_GATEWAY/httpbin/get
     ```
-   The expected results of the executed commands are illustrated in the screenshot below:
+   The expected results of the executed commands are illustrated in the screenshot below.
 
    ![Expected Output](/images/httpbin_output.png)
 

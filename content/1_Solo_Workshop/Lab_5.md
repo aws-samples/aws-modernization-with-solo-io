@@ -8,7 +8,7 @@ weight: 6
 
 ![Gloo Platform EKS Workshop Architecture Lab 5](/images/gloo-platform-eks-workshop-lab5.png)
 
-Lets enforce a **Zero Trust** networking approach where all inbound traffic to any applications is denied by default.
+Let's enforce a **Zero Trust** networking approach where all inbound traffic to any applications is denied by default.
 
 1. Add a default deny-all policy to the backend-apis-team workspace:
 
@@ -78,5 +78,5 @@ Lets enforce a **Zero Trust** networking approach where all inbound traffic to a
     ```
 4. Refresh the page (**echo http://$GLOO_GATEWAY**) again. You should get the store home page back.
 
-This Lab in this Gloo Platform EKS Workshop effectively implemented a Zero Trust network security model, where we began by denying all inbound traffic by default. Through careful configuration of AccessPolicy rules, we selectively allowed necessary communication between the gateway, the frontend, and other microservices within the online-boutique workspace. This approach not only bolstered our network's security but also demonstrated the practicality and flexibility of Zero Trust principles in a cloud-native ecosystem.
+In this lab, we effectively implemented a Zero Trust network security model, where we began by denying all inbound traffic by default. Through careful configuration of AccessPolicy rules, we selectively allowed necessary communication between the gateway, the frontend, and other microservices within the online-boutique workspace. This approach not only bolstered our network's security but also demonstrated the practicality and flexibility of Zero Trust principles in a cloud-native ecosystem.
 

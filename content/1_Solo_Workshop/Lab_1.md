@@ -32,7 +32,7 @@ Gloo Platform provides a management plane to interact with the service mesh and 
       --set licensing.glooMeshLicenseKey=$GLOO_PLATFORM_LICENSE_KEY
    ```
 
-4. Wait 2-3 minutes for all components to install. Use **meshctl check** to check status. 
+4. Wait 2-3 minutes for all components to install. Use **meshctl check** to check the status. 
 
     ![](/images/meshctl_check.png)
 
@@ -44,7 +44,7 @@ Gloo Platform provides a management plane to interact with the service mesh and 
 
     ![](/images/dashboard-1.png)
 
-6. As you might notice there is no Workspaces created yet. Let's create **Global Workspace** in the case of this Lab to simplify the deployment, include all services within the same workspace. This means that they all share the same service discovery policies and security. This is only recommended for this workshop to allow beginners learning Gloo Mesh.
+6. As you might have noticed there is no Workspaces created yet. Let's create a **Global Workspace**. In the case of this Lab, to simplify the deployment, include all services within the same workspace. This means that they all share the same service discovery policies and security. This is only recommended for the workshop to allow beginners learning Gloo Mesh.
 
     ```yaml
     kubectl apply -f - <<EOF
@@ -74,7 +74,7 @@ Gloo Platform provides a management plane to interact with the service mesh and 
     EOF
     ```
 
-7. Wait for the Gloo Gateway Service to become ready and set it's IP address to a variable for us to use later:
+7. Wait for the Gloo Gateway Service to become ready and set its IP address to a variable for us to use later:
 
     ```sh
     export GLOO_GATEWAY=$(kubectl -n gloo-mesh-gateways get svc istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].*}')
