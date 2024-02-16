@@ -105,6 +105,6 @@ weight: 4
 
    ![Expected Output](/images/httpbin_output.png)
 
-This Lab has equipped us with practical knowledge on routing to various workloads, including external services. We've successfully exposed another application by matching URI prefixes and routing to services both within and outside our cluster. This lab has demonstrated the flexibility and power of the Gloo Platform in handling diverse routing scenarios, an essential skill in microservices architecture.
+This lab has equipped us with practical knowledge on routing to various workloads, including external services. We've successfully exposed another application by matching URI prefixes and routing to services both within and outside our cluster. This lab has demonstrated the flexibility and power of the Gloo Platform in handling diverse routing scenarios, an essential skill in microservices architecture.
 
 As we mastered routing to different workloads, we also gained insights into path rewriting and handling external services, setting a solid foundation for more advanced traffic management.
