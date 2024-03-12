@@ -13,7 +13,8 @@ Deploy the Online Boutique microservices to the **online-boutique** namespace.
 ```sh
 kubectl create namespace online-boutique
 kubectl label ns online-boutique istio-injection=enabled
-helm upgrade --install online-boutique --version "5.0.0" oci://us-central1-docker.pkg.dev/solo-test-236622/solo-demos/onlineboutique \
+helm upgrade --install online-boutique \
+  oci://us-central1-docker.pkg.dev/solo-test-236622/solo-demos/onlineboutique \
   --create-namespace \
   --namespace online-boutique
 ```

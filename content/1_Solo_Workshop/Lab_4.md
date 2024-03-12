@@ -53,7 +53,7 @@ where authorization checks will be performed:
         ref:
           cluster: cluster-1
           name: ext-auth-service
-          namespace: gloo-mesh-addons
+          namespace: gloo-mesh
         port:
           name: grpc
     ---
