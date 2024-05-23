@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Gloo Platform EKS Workshop on English</title>
+    <link>/1_solo_workshop.html</link>
+    <description>Recent content in Gloo Platform EKS Workshop on English</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <atom:link href="/1_solo_workshop/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Lab 1 - Deploy Gloo Platform</title>
+      <link>/1_solo_workshop/lab_1.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/1_solo_workshop/lab_1.html</guid>
+      <description>Lab 1 - Deploy Gloo Platform Gloo Platform provides a management plane to interact with the service mesh and gateways in your environment. The management plane exposes a unified API that is multi-tenant and multi-cluster aware. It is responsible for taking your supplied configuration and updating the mesh and gateways in your clusters. Included in the management plane is a UI for policy and traffic observability.
+Set this environment variable to the Gloo license key.</description>
+    </item>
+    <item>
+      <title>Lab 2 - Deploy &amp; Expose Online Boutique Sample Application</title>
+      <link>/1_solo_workshop/lab_2.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/1_solo_workshop/lab_2.html</guid>
+      <description>Lab 2 - Deploy &amp;amp; Expose Online Boutique Sample Application Deploy the Online Boutique microservices to the online-boutique namespace.
+kubectl create namespace online-boutique kubectl label ns online-boutique istio-injection=enabled helm upgrade --install online-boutique \ oci://us-central1-docker.pkg.dev/solo-test-236622/solo-demos/onlineboutique \ --create-namespace \ --namespace online-boutique To capture the traffic coming to the Gateway and route them to your applications, you need to use the VirtualGateway and RouteTable resources.
+VirtualGateway represents a logical gateway configuration served by Gateway workloads.</description>
+    </item>
+    <item>
+      <title>Lab 3 - Routing workloads</title>
+      <link>/1_solo_workshop/lab_3.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/1_solo_workshop/lab_3.html</guid>
+      <description>Lab 3 - Routing to other workloads Let&amp;rsquo;s see how easy it is to expose another application. This time, we will match on URI prefix: /products and send to the productcatalogservice application.
+kubectl apply -f - &amp;lt;&amp;lt;EOF apiVersion: networking.gloo.solo.io/v2 kind: RouteTable metadata: name: productcatalog namespace: online-boutique spec: weight: 100 workloadSelectors: [] http: - matchers: - uri: exact: /products - uri: prefix: /products name: products labels: route: products forwardTo: destinations: - ref: name: productcatalogservice namespace: online-boutique port: number: 3555 EOF Get products from the Product Catalog API.</description>
+    </item>
+    <item>
+      <title>Lab 4 - AI Integration</title>
+      <link>/1_solo_workshop/lab_4.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/1_solo_workshop/lab_4.html</guid>
+      <description>Lab 4 - AI Integration TODO: Text
+kubectl apply -f - &amp;lt;&amp;lt;EOF apiVersion: networking.gloo.solo.io/v2 kind: ExternalService metadata: name: huggingface-api namespace: online-boutique spec: hosts: - api-inference.huggingface.co ports: - name: https number: 443 protocol: HTTPS clientsideTls: {} EOF TODO: Text
+kubectl apply -f - &amp;lt;&amp;lt;EOF apiVersion: networking.gloo.solo.io/v2 kind: RouteTable metadata: name: direct-to-huggingface-routetable namespace: online-boutique spec: workloadSelectors: [] http: - name: demo-huggingface labels: route: huggingface matchers: - uri: prefix: /huggingface forwardTo: pathRewrite: /models/openai-community/gpt2 hostRewrite: api-inference.</description>
+    </item>
+    <item>
+      <title>Lab 5 - Authentication / API Key</title>
+      <link>/1_solo_workshop/lab_5.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/1_solo_workshop/lab_5.html</guid>
+      <description>Lab 5 - Authentication / API Key API key authentication is one of the easiest forms of authentication to implement. Simply create a Kubernetes secret that contains the key and reference it from the ExtAuthPolicy. It is recommended to label the secrets so that multiple can be selected and more can be added later. You can select any header to validate against.
+Create two secrets that Gloo will validate against. One with the api-key admin and the other developer.</description>
+    </item>
+    <item>
+      <title>Lab 6 - AI API Key handling</title>
+      <link>/1_solo_workshop/lab_6.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/1_solo_workshop/lab_6.html</guid>
+      <description>Lab 6 - AI API Key handling ```bash kubectl apply -f - &amp;lt;&amp;lt;&#39;EOF&#39; apiVersion: security.policy.gloo.solo.io/v2 kind: ExtAuthPolicy metadata: name: huggingface-apikey namespace: gloo-mesh-gateways spec: applyToRoutes: - route: labels: route: huggingface config: server: name: ext-auth-server namespace: gloo-mesh-gateways cluster: cluster-1 glooAuth: configs: - apiKeyAuth: headerName: api-key k8sSecretApikeyStorage: labelSelector: api-key: api-huggingface EOF ``` ```bash kubectl apply -f - &amp;lt;&amp;lt;&#39;EOF&#39; apiVersion: v1 kind: Secret metadata: name: api-huggingface-key labels: api-key: api-huggingface type: extauth.solo.io/apikey data: api-key: bXlzZWNyZXRrZXk= # Base64 encoded value &amp;quot;mysecretkey&amp;quot; EOF ``` ```bash curl http://$GLOO_GATEWAY/huggingface ``` ```bash curl -v -H &amp;quot;api-key: mysecretkey&amp;quot; http://$GLOO_GATEWAY/huggingface ``` ```bash kubectl patch secret api-huggingface-key \ --type=json \ -p=&#39;[{&amp;quot;op&amp;quot;: &amp;quot;add&amp;quot;, &amp;quot;path&amp;quot;: &amp;quot;/data/huggingface-api-key&amp;quot;, &amp;quot;value&amp;quot;: &amp;quot;&#39;$(echo -n $HF_API_TOKEN | base64)&#39;&amp;quot;}]&#39; ``` ```bash kubectl patch extauthpolicy huggingface-apikey \ -n gloo-mesh-gateways \ --type=json \ -p=&#39;[{&amp;quot;op&amp;quot;: &amp;quot;add&amp;quot;, &amp;quot;path&amp;quot;: &amp;quot;/spec/config/glooAuth/configs/0/apiKeyAuth/headersFromMetadataEntry&amp;quot;, &amp;quot;value&amp;quot;: {&amp;quot;x-api-key&amp;quot;: {&amp;quot;name&amp;quot;: &amp;quot;huggingface-api-key&amp;quot;}}}]&#39; ``` ```bash kubectl apply -f - &amp;lt;&amp;lt;&#39;EOF&#39; apiVersion: trafficcontrol.</description>
+    </item>
+    <item>
+      <title>Lab 7 - Zero Trust</title>
+      <link>/1_solo_workshop/lab_7.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/1_solo_workshop/lab_7.html</guid>
+      <description>Lab 7 - Zero Trust Let&amp;rsquo;s enforce a Zero Trust networking approach where all inbound traffic to any applications is denied by default.
+Add a default deny-all policy to the backend-apis-team workspace:
+cat &amp;lt;&amp;lt; EOF | kubectl apply -f - apiVersion: security.policy.gloo.solo.io/v2 kind: AccessPolicy metadata: name: allow-nothing namespace: online-boutique spec: applyToWorkloads: - selector: namespace: online-boutique config: authn: tlsMode: STRICT authz: {} EOF Refresh the Online Boutique webpage (echo http://$GLOO_GATEWAY). You should see an error with message &amp;ldquo;RBAC: access denied&amp;rdquo;</description>
+    </item>
+    <item>
+      <title>Lab 8 - Traffic Policies</title>
+      <link>/1_solo_workshop/lab_8.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/1_solo_workshop/lab_8.html</guid>
+      <description>Lab 8 - Traffic Policies In this lab, we will implement intelligent routing rules for the applications in your cluster using Gloo traffic policies. These policies enable you to optimize responses to incoming requests and apply internal security and compliance standards to individual routes, destinations, or entire workloads. This will help you enforce your networking strategy throughout your microservices architecture.
+Gloo Platform supports various policies to ensure network resiliency, traffic control, security, and observability for the microservices in your cluster.</description>
+    </item>
+    <item>
+      <title>Workshop Summary</title>
+      <link>/1_solo_workshop/summary.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/1_solo_workshop/summary.html</guid>
+      <description>Workshop Summary Throughout this workshop, we navigated a series of labs that built up our proficiency in managing and securing a microservices architecture with the Gloo Platform:
+Starting with the Basics: We initiated our journey by setting up the essential components of the Gloo Platform, laying a robust foundation.
+Security and Traffic Management: We delved into advanced topics like Zero Trust security and traffic policies, which are pivotal for modern cloud-native applications.</description>
+    </item>
+    <item>
+      <title>Lab 9 - Dashboard</title>
+      <link>/1_solo_workshop/lab_9.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/1_solo_workshop/lab_9.html</guid>
+      <description>Lab 9 - Dashboard Let&amp;rsquo;s conclude this workshop by looking at the Gloo Dashboard again and exploring it&amp;rsquo;s various features
+Launch the dashboard:
+meshctl dashboard The homepage shows an at-a-glance look at the health of workspaces and clusters that make up your Gloo setup. In this workshop, we only used a single cluster and a single workspace, but Gloo Platform is intended to scale to multiple clusters and provide isolation between teams using Workspaces.</description>
+    </item>
+  </channel>
+</rss>

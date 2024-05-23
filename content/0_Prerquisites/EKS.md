@@ -10,7 +10,7 @@ Starting with setting up your environment variables is the most efficient approa
 
 ```
 export AWS_REGION=us-west-2
-export EKS_VERSION=1.28 
+export EKS_VERSION=1.29
 export CLUSTER_NAME=solo-io-gloo-mesh-workshop
 NUMBER_NODES=3
 

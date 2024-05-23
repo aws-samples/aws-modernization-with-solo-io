@@ -9,6 +9,7 @@ project.lock.json
 *.user
 *.userosscache
 *.sln.docstates
+debug/
 
 # Build results
 [Dd]ebug/

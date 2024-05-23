@@ -10,7 +10,7 @@ weight: 4
 
 1. Let's see how easy it is to expose another application. This time, we will match on URI **prefix: /products** and send to the productcatalogservice application.
 
-    ```yaml
+    ```bash
     kubectl apply -f - <<EOF
     apiVersion: networking.gloo.solo.io/v2
     kind: RouteTable
@@ -41,14 +41,14 @@ weight: 4
 
 2. Get products from the Product Catalog API.
 
-    ```sh
+    ```bash
     curl $GLOO_GATEWAY/products
     ```
    ![Expected Output](/images/products_output.png)
 
 3. Next, let's route to an endpoint (http://httpbin.org) that is external to the cluster. **ExternalService** resource defines a service that exists outside of the mesh. ExternalService provides a mechanism to tell Gloo Platform about its existance and how it should be communicated with. Once an ExternalService is created, a **RouteTable** can be used to send traffic to it. In this example, we will send traffic on URI **prefix: /httpbin** to this external service.
 
-    ```yaml
+    ```bash
     kubectl apply -f - <<EOF
     apiVersion: networking.gloo.solo.io/v2
     kind: ExternalService
@@ -68,7 +68,7 @@ weight: 4
 
 4. Create a new **RouteTable** that will match on requests containing the prefix **/httpbin** and route it to the httpbin **ExternalService**. You may have also noticed that we are rewriting the path using **pathRewrite: /** because httpbin.org is listening for **/get**.
 
-    ```yaml
+    ```bash
     kubectl apply -f - <<'EOF'
     apiVersion: networking.gloo.solo.io/v2
     kind: RouteTable
@@ -98,7 +98,7 @@ weight: 4
 
 5. Let's test it.
 
-    ```sh
+    ```bash
     curl -v $GLOO_GATEWAY/httpbin/get
     ```
    The expected results of the executed commands are illustrated in the screenshot below.

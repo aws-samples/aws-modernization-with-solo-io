@@ -1,30 +1,82 @@
 ---
-title: "Lab 7 - Dashboard"
+title: "Lab 7 - Zero Trust"
 chapter: true
 weight: 8
 ---
 
-## Lab 7 - Dashboard
+## Lab 7 - Zero Trust
 
-Let's conclude this workshop by looking at the Gloo Dashboard again and exploring it's various features
+![Gloo Platform EKS Workshop Architecture Lab 7](/images/gloo-platform-eks-workshop-lab7.png)
 
-1. Launch the dashboard:
-  
-     ```
-     meshctl dashboard
-     ```
-  
-2. The homepage shows an at-a-glance look at the health of workspaces and clusters that make up your Gloo setup. In this workshop, we only used a single cluster and a single workspace, but Gloo Platform is intended to scale to multiple clusters and provide isolation between teams using Workspaces. 
+Let's enforce a **Zero Trust** networking approach where all inbound traffic to any applications is denied by default.
 
-   ![](/images/dashboard-home.png)
+1. Add a default deny-all policy to the backend-apis-team workspace:
 
-3. The 'Solo' page within the 'Resources' section provides a comprehensive view of various API objects, including Access and Traffic Policies, that we've defined during this workshop."
-   ![](/images/dashboard-resources.png)
+    ```bash
+    cat << EOF | kubectl apply -f -
+    apiVersion: security.policy.gloo.solo.io/v2
+    kind: AccessPolicy
+    metadata:
+      name: allow-nothing
+      namespace: online-boutique
+    spec:
+      applyToWorkloads:
+      - selector:
+          namespace: online-boutique
+      config:
+        authn:
+          tlsMode: STRICT
+        authz: {}
+    EOF
+    ```
 
-4. The 'Istio' sub-section within the 'Resources' section shows the Istio or Envoy configuration that was _generated_ by Gloo. Review the configuration of translated Istio resources to help debug issues.
-   ![](/images/dashboard-istio.png)
+2. Refresh the Online Boutique webpage (**echo http://$GLOO_GATEWAY**). You should see an error with message **"RBAC: access denied"**
 
-5. The Graph page within the 'Observability' section is used to visualize the network traffic that enters your cluster in a graph that maps out all the nodes by workspace, namespace, or cluster.
-   ![](/images/dashboard-graph.png)
+3. Add AccessPolicy to explicitly allow traffic between the gateway and the frontend application:
 
-This lab, as the final chapter of our Gloo Platform EKS Workshop, brought everything together by showcasing the Gloo Dashboard, an integral component for monitoring and managing the Gloo environment. Through this lab, you've had the opportunity to explore various dashboard features, giving you insights into the health of workspaces and clusters, the policies we've implemented throughout the workshop, and valuable debugging and network traffic visualization tools.
+    ```bash
+    kubectl apply -f - <<EOF
+    apiVersion: security.policy.gloo.solo.io/v2
+    kind: AccessPolicy
+    metadata:
+      name: frontend-api-access
+      namespace: online-boutique
+    spec:
+      applyToDestinations:
+      - selector:
+          labels: 
+            app: frontend
+      config:
+        authz:
+          allowedClients:
+          - serviceAccountSelector:
+              labels:
+                app: istio-ingressgateway
+              namespace: gloo-mesh-gateways
+    EOF
+    ```
+
+3. Add AccessPolicy to explicitly allow traffic between the microservices online-boutique workspace. As you can see, these policies can be very flexible.
+
+    ```bash
+    kubectl apply -f - <<EOF
+    apiVersion: security.policy.gloo.solo.io/v2
+    kind: AccessPolicy
+    metadata:
+      name: in-namespace-access
+      namespace: online-boutique
+    spec:
+      applyToDestinations:
+      - selector:
+          namespace: online-boutique
+      config:
+        authz:
+          allowedClients:
+          - serviceAccountSelector:
+              namespace: online-boutique
+    EOF
+    ```
+4. Refresh the page (**echo http://$GLOO_GATEWAY**) again. You should get the store home page back.
+
+In this lab, we effectively implemented a Zero Trust network security model, where we began by denying all inbound traffic by default. Through careful configuration of AccessPolicy rules, we selectively allowed necessary communication between the gateway, the frontend, and other microservices within the online-boutique workspace. This approach not only bolstered our network's security but also demonstrated the practicality and flexibility of Zero Trust principles in a cloud-native ecosystem.
+

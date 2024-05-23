@@ -10,7 +10,7 @@ weight: 3
 
 Deploy the Online Boutique microservices to the **online-boutique** namespace.
 
-```sh
+```bash
 kubectl create namespace online-boutique
 kubectl label ns online-boutique istio-injection=enabled
 helm upgrade --install online-boutique \
@@ -28,7 +28,7 @@ To capture the traffic coming to the Gateway and route them to your applications
 
 1. Let's start by assuming the role of an Ops team. Configure the Gateway to listen **on port 80** and create a generic **RouteTable** that further delegates the traffic routing to RouteTables in other namespaces.
 
-    ```yaml
+    ```bash
     kubectl apply -f - <<EOF
     apiVersion: networking.gloo.solo.io/v2
     kind: VirtualGateway
@@ -74,7 +74,7 @@ To capture the traffic coming to the Gateway and route them to your applications
 
 2. The Dev team can now write their own RouteTables in their own namespace. Create a RouteTable to send traffic that matches URI **prefix: /** to the frontend application.
 
-    ```yaml
+    ```bash
     kubectl apply -f - <<EOF
     apiVersion: networking.gloo.solo.io/v2
     kind: RouteTable
@@ -101,7 +101,7 @@ To capture the traffic coming to the Gateway and route them to your applications
     ```
 
 3. Visit the online boutique application in your browser.
-    ```sh
+    ```bash
     export GLOO_GATEWAY=$(kubectl -n gloo-mesh-gateways get svc istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].*}')
     printf "\n\nGloo Gateway available at http://$GLOO_GATEWAY\n"
     ```

@@ -1,108 +1,149 @@
----
-title: "Lab 4 - Authentication / API Key"
+title: "Lab 4 - AI Integration"
 chapter: true
 weight: 5
 ---
 
-## Lab 4 - Authentication / API Key 
+## Lab 4 - AI Integration
 
 ![Gloo Platform EKS Workshop Architecture Lab 4](/images/gloo-platform-eks-workshop-lab4.png)
 
-API key authentication is one of the easiest forms of authentication to implement. Simply create a Kubernetes secret that contains the key and reference it from the **ExtAuthPolicy**. It is recommended to label the secrets so that multiple can be selected and more can be added later. You can select any header to validate against.
+In this lab, we will configure the gateway to forward requests to an AI external service. Technically, any service that responds to HTTP requests can be configured. For the ease of this specific lab, we will use the free [Hugging Face](https://huggingface.co/welcome) service. The requests sent to the lab environment will be intercepted by Istio and forwarded to the external AI service. To complete this lab successfully, you will need to obtain an API Token from your instructor or [online](https://huggingface.co/settings/tokens).
 
-1. Create two secrets that Gloo will validate against. One with the api-key **admin** and the other **developer**.
+1. Create `ai-demo` Namespace to Host AI Related Objects:
 
-    ```yaml
-    kubectl apply -f - <<EOF
-    apiVersion: v1
-    kind: Secret
-    metadata:
-      name: solo-admin
-      namespace: gloo-mesh-gateways
-      labels:
-        api-keyset: httpbin-users
-    type: extauth.solo.io/apikey
-    data:
-      api-key: $(echo -n "admin" | base64)
-    ---
-    apiVersion: v1
-    kind: Secret
-    metadata:
-      name: solo-developer
-      namespace: gloo-mesh-gateways
-      labels:
-        api-keyset: httpbin-users
-    type: extauth.solo.io/apikey
-    data:
-      api-key: $(echo -n "developer" | base64)
-    EOF
+    ```bash
+    kubectl create ns ai-demo
     ```
 
-2. Create the API key **ExtAuthPolicy** that will match header **x-api-key** values againt the secrets created above. The **ExtAuthServer** resource configures
-where authorization checks will be performed:
+2. Enable Port `8081` to the Environment:
 
-    ```yaml
+   - Add port `8081` to the deployed Ingress Gateway:
+
+    ```bash
+    kubectl patch gatewaylifecyclemanagers.admin.gloo.solo.io istio-ingressgateway -n gloo-mesh --type='json' -p='[{"op": "add", "path": "/spec/installations/0/gatewayRevision", "value": "auto"},{"op": "add", "path": "/spec/installations/0/istioOperatorSpec/components/ingressGateways/0/k8s/service/ports/-", "value": {"name": "http2-8081", "port": 8081, "targetPort": 8081}}]'
+    ```
+
+   - Apply Gloo `VirtualGateway` to handle requests arriving at port `8081` and being processed by AI applications. Also, add `RouteTable` for all routing to be delegated to `RouteTables` inside the `ai-demo` namespace:
+
+    ```bash
     kubectl apply -f - <<EOF
-    apiVersion: admin.gloo.solo.io/v2
-    kind: ExtAuthServer
+    apiVersion: networking.gloo.solo.io/v2
+    kind: VirtualGateway
     metadata:
-      name: ext-auth-server
+      name: ai-ingress-gw
       namespace: gloo-mesh-gateways
     spec:
-      destinationServer:
-        ref:
-          cluster: cluster-1
-          name: ext-auth-service
-          namespace: gloo-mesh
-        port:
-          name: grpc
+      workloads:
+        - selector:
+            labels:
+              app: istio-ingressgateway
+            namespace: gloo-mesh-gateways
+      listeners: 
+        - http: {}
+          port:
+            number: 8081
+          allowedRouteTables:
+            - host: '*'
+              selector:
+                namespace: gloo-mesh-gateways
     ---
-    apiVersion: security.policy.gloo.solo.io/v2
-    kind: ExtAuthPolicy
+    apiVersion: networking.gloo.solo.io/v2
+    kind: RouteTable
     metadata:
-      name: products-apikey
+      name: ai-ingress-rt
       namespace: gloo-mesh-gateways
     spec:
-      applyToRoutes:
-      - route:
-          labels:
-            route: products
-      config:
-        server:
-          name: ext-auth-server
+      hosts:
+        - '*'
+      virtualGateways:
+        - name: ai-ingress-gw
           namespace: gloo-mesh-gateways
-          cluster: cluster-1
-        glooAuth:
-          configs:
-          - apiKeyAuth:
-              headerName: x-api-key
-              labelSelector:
-                api-keyset: httpbin-users
+      workloadSelectors: []
+      http:
+        - name: ai-ingress-requests
+          labels:
+            ingress: all
+          delegate:
+            routeTables:
+            - namespace: ai-demo
     EOF
     ```
 
-3. Call httpbin without an api key and you will get a **401 unauthorized message**:
+3. Define `ExternalService` for Hugging Face API Endpoint:
 
-    ```sh
-    curl -i http://$GLOO_GATEWAY/products
+    ```bash
+    kubectl apply -f - <<EOF
+    apiVersion: networking.gloo.solo.io/v2
+    kind: ExternalService
+    metadata:
+      name: huggingface-api
+      namespace: ai-demo
+    spec:
+      hosts:
+      - api-inference.huggingface.co
+      ports:
+      - name: https
+        number: 443
+        protocol: HTTPS
+        clientsideTls: {}
+    EOF
     ```
 
-4. Call httpbin with the developer api key **x-api-key: developer**:
+4. Create a `RouteTable` to Rewrite URL and Send Request to the External Service:
 
-    ```sh
-    curl -H "x-api-key: developer" http://$GLOO_GATEWAY/products
+    ```bash
+    kubectl apply -f - <<EOF
+    apiVersion: networking.gloo.solo.io/v2
+    kind: RouteTable
+    metadata:
+      name: direct-to-huggingface-routetable
+      namespace: ai-demo
+    spec:
+      workloadSelectors: []
+      http:
+        - name: demo-huggingface
+          labels:
+            route: huggingface
+          matchers:
+          - uri:
+              prefix: /huggingface
+          forwardTo:
+            pathRewrite: /models/openai-community/gpt2
+            hostRewrite: api-inference.huggingface.co
+            destinations:
+            - kind: EXTERNAL_SERVICE
+              ref:
+                name: huggingface-api
+              port:
+                number: 443
+    EOF
     ```
 
-5. Call httpbin with the admin api key **x-api-key: admin**:
+5. Test the Setup:
 
-    ```sh
-    curl -H "x-api-key: admin" http://$GLOO_GATEWAY/products
+   - Assign the token received from your instructor or issued [online](https://huggingface.co/settings/tokens) to an environmental variable:
+
+    ```bash
+    export HF_API_TOKEN=<huggingface token>
     ```
 
-The expected results of the executed commands are illustrated in the screenshot below:
+   - Assign the Ingress gateway address and port to an environment variable:
 
-  ![Expected Output](/images/authorization_outputs.png)
+    ```bash
+    export GLOO_AI_GATEWAY=$(kubectl -n gloo-mesh-gateways get svc istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].*}'):8081
+    printf "\n\nGloo AI Gateway available at http://$GLOO_AI_GATEWAY\n"
+    ```
 
-In this lab, we've taken significant steps in enhancing the security of our application by implementing API key authentication. By creating Kubernetes secrets for different user roles and setting up the ExtAuthPolicy, we've established a reliable method to secure and manage access to our services. This lab has not only highlighted the ease of setting up basic authentication but also emphasized the importance of robust security practices in microservices architectures.
+   - Confirm that the `API Token` is valid and that the service request sent to the Ingress Gateway managed by Gloo Platform returns a response from the upstream LLM service:
 
-As we move forward, the concepts and skills we've acquired here will be crucial in understanding and implementing more comprehensive security strategies.
+    ```bash
+    curl http://$GLOO_AI_GATEWAY/huggingface \
+        -X POST \
+        -d '{"inputs": "Explain in 1-2 sentences why EKS value significantly increases when Gloo Mesh is added"}' \
+        -H 'Content-Type: application/json' \
+        -H "Authorization: Bearer ${HF_API_TOKEN}"
+    ```
+
+    ![Expected Output](/images/hugging_face_output.png)
+
+This lab has demonstrated the process of integrating AI services with your Gloo Platform on EKS. By configuring external services and routing rules, we've enabled the platform to forward requests to the Hugging Face API, allowing seamless AI integration. This capability is vital in modern applications, where leveraging AI services can significantly enhance functionality and user experience. The skills gained in this lab will be instrumental in managing more complex AI integrations and routing scenarios in your microservices architecture.

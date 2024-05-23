@@ -12,14 +12,14 @@ Gloo Platform provides a management plane to interact with the service mesh and 
 
 1. Set this environment variable to the Gloo license key.
 
-    ```sh
+    ```bash
     export GLOO_PLATFORM_LICENSE_KEY=<licence_key>
     ```
 
 2. Install **meshctl**, the Gloo command line tool for bootstrapping Gloo Platform, registering clusters, describing configured resources, and more. Be sure to download version 2.4.4, which uses the latest Gloo Mesh installation values.
 
-    ```sh
-    curl -sL https://run.solo.io/meshctl/install | GLOO_MESH_VERSION=v2.5.3 sh -
+    ```bash
+    curl -sL https://run.solo.io/meshctl/install | GLOO_MESH_VERSION=v2.5.6 sh -
     export PATH=$HOME/.gloo-mesh/bin:$PATH
     ```
 
@@ -28,8 +28,10 @@ Gloo Platform provides a management plane to interact with the service mesh and 
     ```
     meshctl install --profiles gloo-mesh-single,ratelimit,extauth \
       --set common.cluster=cluster-1 \
-      --set demo.manageAddonNamespace=true \
-      --set licensing.glooMeshLicenseKey=$GLOO_PLATFORM_LICENSE_KEY
+      --set licensing.glooMeshLicenseKey=$GLOO_PLATFORM_LICENSE_KEY \
+      --set glooMgmtServer.extraEnvs.RELAY_TOKEN.value="AWSWorkshopToken" \
+      --set glooAgent.extraEnvs.RELAY_TOKEN.value="AWSWorkshopToken" \
+      --set demo.manageAddonNamespace=true
    ```
 
 4. Wait 2-3 minutes for all components to install. Use **meshctl check** to check the status. 
@@ -46,7 +48,7 @@ Gloo Platform provides a management plane to interact with the service mesh and 
 
 6. As you might have noticed there is no Workspaces created yet. Let's create a **Global Workspace**. In the case of this Lab, to simplify the deployment, include all services within the same workspace. This means that they all share the same service discovery policies and security. This is only recommended for the workshop to allow beginners learning Gloo Mesh.
 
-    ```yaml
+    ```bash
     kubectl apply -f - <<EOF
     apiVersion: admin.gloo.solo.io/v2
     kind: Workspace
@@ -76,7 +78,7 @@ Gloo Platform provides a management plane to interact with the service mesh and 
 
 7. Wait for the Gloo Gateway Service to become ready and set its IP address to a variable for us to use later:
 
-    ```sh
+    ```bash
     export GLOO_GATEWAY=$(kubectl -n gloo-mesh-gateways get svc istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].*}')
     printf "\n\nGloo Gateway available at https://$GLOO_GATEWAY\n"
     ```
