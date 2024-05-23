@@ -16,9 +16,9 @@ In this lab, we will configure the gateway to forward requests to an AI external
     kubectl create ns ai-demo
     ```
 
-2. Enable Port `8081` to the Environment:
+2. Enable Port **8081** to the Environment:
 
-   - Add port `8081` to the deployed Ingress Gateway:
+   - Add port **8081** to the deployed Ingress Gateway:
 
     ```bash
     kubectl patch gatewaylifecyclemanagers.admin.gloo.solo.io istio-ingressgateway -n gloo-mesh --type='json' -p='[{"op": "add", "path": "/spec/installations/0/gatewayRevision", "value": "auto"},{"op": "add", "path": "/spec/installations/0/istioOperatorSpec/components/ingressGateways/0/k8s/service/ports/-", "value": {"name": "http2-8081", "port": 8081, "targetPort": 8081}}]'
