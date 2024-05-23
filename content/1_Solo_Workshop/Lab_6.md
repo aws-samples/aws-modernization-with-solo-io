@@ -59,12 +59,11 @@ In this lab, we will apply the concepts from "Lab 5 - Authentication / API Key" 
 
 3. Confirm Denied Access Without Credentials:
 
-    Verify that access to the service is denied when credentials are not provided.
+    Verify that **access to the service is denied** when credentials are not provided.
 
     ```bash
     curl -I http://$GLOO_AI_GATEWAY/huggingface
     ```
-
     ![Expected Output](/images/ai_401_output.png)
 
 4. Confirm Access with Correct **api-key**:
@@ -77,7 +76,7 @@ In this lab, we will apply the concepts from "Lab 5 - Authentication / API Key" 
 
     ![Expected Output](/images/ai_200_output.png)
 
-5. Transfer Hugging Face API Token to Existing Secret:
+5. Transfer Hugging Face **API Token** to Existing Secret:
 
     Transfer the Hugging Face API Token, currently stored as an environmental variable, to the existing secret that already has user credentials.
 

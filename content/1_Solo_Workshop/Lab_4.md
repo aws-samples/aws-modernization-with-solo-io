@@ -18,7 +18,7 @@ In this lab, we will configure the gateway to forward requests to an AI external
 
 2. Enable Port **8081** to the Environment:
 
-   - Add port **8081** to the deployed Ingress Gateway:
+   - Add port **8081** to the deployed Ingress Gateway. The Gloo Lifecycle Manager (LCM) configures Istio gateways centrally, so the gateway configuration in this step is done by adjusting the LCM configuration. This centralized approach ensures consistent and efficient management of gateway configurations across your environment.:
 
     ```bash
     kubectl patch gatewaylifecyclemanagers.admin.gloo.solo.io istio-ingressgateway -n gloo-mesh --type='json' -p='[{"op": "add", "path": "/spec/installations/0/gatewayRevision", "value": "auto"},{"op": "add", "path": "/spec/installations/0/istioOperatorSpec/components/ingressGateways/0/k8s/service/ports/-", "value": {"name": "http2-8081", "port": 8081, "targetPort": 8081}}]'
@@ -144,7 +144,7 @@ In this lab, we will configure the gateway to forward requests to an AI external
         -H 'Content-Type: application/json' \
         -H "Authorization: Bearer ${HF_API_TOKEN}"
     ```
-
+    The expected results of the executed commands are illustrated in the screenshot below.
     ![Expected Output](/images/hugging_face_output.png)
 
 This lab has demonstrated the process of integrating AI services with your Gloo Platform on EKS. By configuring external services and routing rules, we've enabled the platform to forward requests to the Hugging Face API, allowing seamless AI integration. This capability is vital in modern applications, where leveraging AI services can significantly enhance functionality and user experience. The skills gained in this lab will be instrumental in managing more complex AI integrations and routing scenarios in your microservices architecture.
