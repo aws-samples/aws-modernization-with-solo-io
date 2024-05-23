@@ -19,7 +19,7 @@ Gloo Platform provides a management plane to interact with the service mesh and 
 2. Install **meshctl**, the Gloo command line tool for bootstrapping Gloo Platform, registering clusters, describing configured resources, and more. Be sure to download version 2.4.4, which uses the latest Gloo Mesh installation values.
 
     ```bash
-    curl -sL https://run.solo.io/meshctl/install | GLOO_MESH_VERSION=v2.5.6 sh -
+    curl -sL https://run.solo.io/meshctl/install | GLOO_MESH_VERSION=v2.5.4 sh -
     export PATH=$HOME/.gloo-mesh/bin:$PATH
     ```
 
@@ -29,8 +29,6 @@ Gloo Platform provides a management plane to interact with the service mesh and 
     meshctl install --profiles gloo-mesh-single,ratelimit,extauth \
       --set common.cluster=cluster-1 \
       --set licensing.glooMeshLicenseKey=$GLOO_PLATFORM_LICENSE_KEY \
-      --set glooMgmtServer.extraEnvs.RELAY_TOKEN.value="AWSWorkshopToken" \
-      --set glooAgent.extraEnvs.RELAY_TOKEN.value="AWSWorkshopToken" \
       --set demo.manageAddonNamespace=true
    ```
 
