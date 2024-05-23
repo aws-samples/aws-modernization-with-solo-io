@@ -1,3 +1,4 @@
+---
 title: "Lab 4 - AI Integration"
 chapter: true
 weight: 5
