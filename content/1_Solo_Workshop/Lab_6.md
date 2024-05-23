@@ -10,7 +10,7 @@ weight: 7
 
 In this lab, we will apply the concepts from "Lab 5 - Authentication / API Key" to the AI API service created in "Lab 4 - AI Integration". This workflow allows for automatic and secure control of the API Token without user interaction with the key, while still protecting the use of the key with user credentials.
 
-1. Define `ExtAuthPolicy` to Require User Credentials for Endpoint Access:
+1. Define **ExtAuthPolicy** to Require User Credentials for Endpoint Access:
 
     ```bash
     kubectl apply -f - <<'EOF'
@@ -67,9 +67,9 @@ In this lab, we will apply the concepts from "Lab 5 - Authentication / API Key" 
 
     ![Expected Output](/images/ai_401_output.png)
 
-4. Confirm Access with Correct `api-key`:
+4. Confirm Access with Correct **api-key**:
 
-    Verify that the correct `api-key` works.
+    Verify that the correct **api-key** works.
 
     ```bash
     curl -v -H "api-key: mysecretkey" http://$GLOO_AI_GATEWAY/huggingface
@@ -89,7 +89,7 @@ In this lab, we will apply the concepts from "Lab 5 - Authentication / API Key" 
 
 6. Update Auth Policy with API Token Location:
 
-    Update the `ExtAuthPolicy` to define the API Token location.
+    Update the **ExtAuthPolicy** to define the API Token location.
 
     ```bash
     kubectl patch extauthpolicy huggingface-apikey \
@@ -98,9 +98,9 @@ In this lab, we will apply the concepts from "Lab 5 - Authentication / API Key" 
     -p='[{"op": "add", "path": "/spec/config/glooAuth/configs/0/apiKeyAuth/headersFromMetadataEntry", "value": {"x-api-key": {"name": "huggingface-api-key"}}}]'
     ```
 
-7. Define `TransformationPolicy` to Add API Token to Request:
+7. Define **TransformationPolicy** to Add API Token to Request:
 
-    Instruct Gloo Mesh to add the API Token to the request by defining a `TransformationPolicy`.
+    Instruct Gloo Mesh to add the API Token to the request by defining a **TransformationPolicy**.
 
     ```bash
     kubectl apply -f - <<'EOF'

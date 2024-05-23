@@ -10,7 +10,7 @@ weight: 5
 
 In this lab, we will configure the gateway to forward requests to an AI external service. Technically, any service that responds to HTTP requests can be configured. For the ease of this specific lab, we will use the free [Hugging Face](https://huggingface.co/welcome) service. The requests sent to the lab environment will be intercepted by Istio and forwarded to the external AI service. To complete this lab successfully, you will need to obtain an API Token from your instructor or [online](https://huggingface.co/settings/tokens).
 
-1. Create `ai-demo` Namespace to Host AI Related Objects:
+1. Create **ai-demo** Namespace to Host AI Related Objects:
 
     ```bash
     kubectl create ns ai-demo
@@ -24,7 +24,7 @@ In this lab, we will configure the gateway to forward requests to an AI external
     kubectl patch gatewaylifecyclemanagers.admin.gloo.solo.io istio-ingressgateway -n gloo-mesh --type='json' -p='[{"op": "add", "path": "/spec/installations/0/gatewayRevision", "value": "auto"},{"op": "add", "path": "/spec/installations/0/istioOperatorSpec/components/ingressGateways/0/k8s/service/ports/-", "value": {"name": "http2-8081", "port": 8081, "targetPort": 8081}}]'
     ```
 
-   - Apply Gloo `VirtualGateway` to handle requests arriving at port `8081` and being processed by AI applications. Also, add `RouteTable` for all routing to be delegated to `RouteTables` inside the `ai-demo` namespace:
+   - Apply Gloo **VirtualGateway** to handle requests arriving at port **8081** and being processed by AI applications. Also, add **RouteTable** for all routing to be delegated to **RouteTables** inside the **ai-demo** namespace:
 
     ```bash
     kubectl apply -f - <<EOF
@@ -70,7 +70,7 @@ In this lab, we will configure the gateway to forward requests to an AI external
     EOF
     ```
 
-3. Define `ExternalService` for Hugging Face API Endpoint:
+3. Define **ExternalService** for Hugging Face API Endpoint:
 
     ```bash
     kubectl apply -f - <<EOF
@@ -90,7 +90,7 @@ In this lab, we will configure the gateway to forward requests to an AI external
     EOF
     ```
 
-4. Create a `RouteTable` to Rewrite URL and Send Request to the External Service:
+4. Create a **RouteTable** to Rewrite URL and Send Request to the External Service:
 
     ```bash
     kubectl apply -f - <<EOF
@@ -135,7 +135,7 @@ In this lab, we will configure the gateway to forward requests to an AI external
     printf "\n\nGloo AI Gateway available at http://$GLOO_AI_GATEWAY\n"
     ```
 
-   - Confirm that the `API Token` is valid and that the service request sent to the Ingress Gateway managed by Gloo Platform returns a response from the upstream LLM service:
+   - Confirm that the **API Token** is valid and that the service request sent to the Ingress Gateway managed by Gloo Platform returns a response from the upstream LLM service:
 
     ```bash
     curl http://$GLOO_AI_GATEWAY/huggingface \
