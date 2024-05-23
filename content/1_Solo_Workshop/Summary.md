@@ -30,3 +30,4 @@ Review the following ways to get additional help, training, and other forms of s
 
 - [Troubleshoot Issues](https://docs.solo.io/gloo-mesh-enterprise/main/troubleshooting/)
 - [Support and Slack](https://docs.solo.io/gloo-mesh-enterprise/main/support/)
+- [Using Gloo Gateway to Support LLM APIs](https://www.solo.io/blog/gloo-gateway-support-llm-apis/)
