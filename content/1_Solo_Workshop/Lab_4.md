@@ -146,5 +146,7 @@ In this lab, we will configure the gateway to forward requests to an AI external
     ```
     The expected results of the executed commands are illustrated in the screenshot below.
     ![Expected Output](/images/hugging_face_output.png)
+    > **Note:** The response in the screenshot is generated using a free model from Hugging Face. While it may provide entertaining and occasionally quirky responses, it's important to note that for more accurate and meaningful outputs, services like OpenAI's GPT models are recommended. The configuration process is similar, though OpenAI's service is not free. Sometimes you get what you pay for - even in AI responses!
+
 
 This lab has demonstrated the process of integrating AI services with your Gloo Platform on EKS. By configuring external services and routing rules, we've enabled the platform to forward requests to the Hugging Face API, allowing seamless AI integration. This capability is vital in modern applications, where leveraging AI services can significantly enhance functionality and user experience. The skills gained in this lab will be instrumental in managing more complex AI integrations and routing scenarios in your microservices architecture.

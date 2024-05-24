@@ -138,6 +138,8 @@ In this lab, we will apply the concepts from "Lab 5 - Authentication / API Key" 
     ```
 
     ![Expected Output](/images/ai_api_key.png)
+    > **Note:** The response in the screenshot is generated using a free model from Hugging Face. While it may offer amusing and sometimes whimsical outputs, it's worth noting that for more precise and insightful results, services like OpenAI's GPT models are a better choice. The configuration process is similar, although OpenAI's service comes at a cost. Remember, even AI has its budget options—and they come with their quirks!
+
 
 In this lab, we have effectively integrated secure API key handling for AI services within the Gloo Platform on EKS. By implementing authentication policies and leveraging Kubernetes secrets, we've ensured that sensitive AI API tokens are managed securely and automatically. This lab demonstrated how to streamline access to powerful AI capabilities, such as those provided by Hugging Face, without exposing API keys directly to users.
 
