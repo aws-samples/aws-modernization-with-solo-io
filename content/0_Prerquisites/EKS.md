@@ -8,9 +8,9 @@ weight: 2
 
 Starting with setting up your environment variables is the most efficient approach. Please adjust these variables based on your specific AWS region:
 
-```
+```bash
 export AWS_REGION=us-west-2
-export EKS_VERSION=1.28 
+export EKS_VERSION=1.29
 export CLUSTER_NAME=solo-io-gloo-mesh-workshop
 NUMBER_NODES=3
 
@@ -22,7 +22,7 @@ NODE_TYPE="c7i.xlarge"
 
 Use the following `eksctl` command to create your cluster. This command initiates the creation of CloudFormation stacks — one for the cluster and another for deploying the nodes:
 
-```
+```bash
 eksctl create cluster --region $AWS_REGION \
   --name $CLUSTER_NAME \
   --nodes $NUMBER_NODES \

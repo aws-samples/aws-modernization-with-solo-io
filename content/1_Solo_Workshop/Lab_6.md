@@ -1,56 +1,146 @@
 ---
-title: "Lab 6 - Traffic Policies"
+title: "Lab 6 - AI API Key Handling"
 chapter: true
 weight: 7
 ---
 
-## Lab 6 - Traffic Policies
+## Lab 6 - AI API Key Handling
 
-![Gloo Platform EKS Workshop Architecture Lab 6](/images/gloo-platform-eks-workshop-lab6.png)
+![Gloo Platform EKS Workshop Architecture Lab 6](/images/gloo-platform-eks-workshop-lab6.png) 
 
-In this lab, we will implement intelligent routing rules for the applications in your cluster using Gloo traffic policies. These policies enable you to optimize responses to incoming requests and apply internal security and compliance standards to individual routes, destinations, or entire workloads. This will help you enforce your networking strategy throughout your microservices architecture.
+In this lab, we will apply the concepts from "Lab 5 - Authentication / API Key" to the AI API service created in "Lab 4 - AI Integration". This workflow allows for automatic and secure control of the API Token without user interaction with the key, while still protecting the use of the key with user credentials.
 
-Gloo Platform supports various policies to ensure network resiliency, traffic control, security, and observability for the microservices in your cluster. These can be applied to both gateway and workloads in the mesh, using Kubernetes labels and selectors that match **RouteTables**, **VirtualDestinations**, or workloads.
-
-![](/images/policies.png)
-
-### Exercise: Implementing and Measuring Traffic Delay
-
-1. **Measure Baseline Response Time**: Before applying any traffic policies, it's important to establish a baseline for the current response time. Use the following **curl** command to measure this:
+1. Define **ExtAuthPolicy** to Require User Credentials for Endpoint Access:
 
     ```bash
-    curl -o /dev/null -s -w "Time Connect: %{time_connect}s\nTime Start Transfer: %{time_starttransfer}s\nTotal Time: %{time_total}s\n" http://$GLOO_GATEWAY
+    kubectl apply -f - <<'EOF'
+    apiVersion: security.policy.gloo.solo.io/v2
+    kind: ExtAuthPolicy
+    metadata:
+      name: huggingface-apikey
+      namespace: gloo-mesh-gateways
+    spec:
+      applyToRoutes:
+        - route:
+            labels:
+              route: huggingface
+      config:
+        server:
+          name: ext-auth-server
+          namespace: gloo-mesh-gateways
+          cluster: cluster-1
+        glooAuth:
+          configs:
+          - apiKeyAuth:
+              headerName: api-key
+              k8sSecretApikeyStorage:
+                labelSelector:
+                  api-key: api-huggingface
+    EOF
     ```
 
-2. **Apply a Fault Injection Policy**: Now, apply a simple fault injection policy to the frontend **RouteTable** using its label. This configuration will introduce a 3-second delay:
+2. Define User Credentials as a Kubernetes Secret:
 
-    ```yaml
-    kubectl apply -f - <<EOF
-    apiVersion: resilience.policy.gloo.solo.io/v2
-    kind: FaultInjectionPolicy
+    For demonstration purposes, user credentials are defined as a Kubernetes secret. In production, external key repositories and vaults should be used.
+
+    ```bash
+    kubectl apply -f - <<'EOF'
+    apiVersion: v1
+    kind: Secret
     metadata:
-      name: 3sec-fault-injection
-      namespace: online-boutique
+      name: api-huggingface-key
+      labels:
+        api-key: api-huggingface
+    type: extauth.solo.io/apikey
+    data:
+      api-key: bXlzZWNyZXRrZXk= # Base64 encoded value "mysecretkey"
+    EOF
+    ```
+
+3. Confirm Denied Access Without Credentials:
+
+    Verify that **access to the service is denied** when credentials are not provided.
+
+    ```bash
+    curl -I http://$GLOO_AI_GATEWAY/huggingface
+    ```
+    ![Expected Output](/images/ai_401_output.png)
+
+4. Confirm Access with Correct **api-key**:
+
+    Verify that the correct **api-key** works.
+
+    ```bash
+    curl -v -H "api-key: mysecretkey" http://$GLOO_AI_GATEWAY/huggingface
+    ```
+
+    ![Expected Output](/images/ai_200_output.png)
+
+5. Transfer Hugging Face **API Token** to Existing Secret:
+
+    Transfer the Hugging Face API Token, currently stored as an environmental variable, to the existing secret that already has user credentials.
+
+    ```bash
+    kubectl patch secret api-huggingface-key \
+    --type=json \
+    -p='[{"op": "add", "path": "/data/huggingface-api-key", "value": "'$(echo -n $HF_API_TOKEN | base64)'"}]'
+    ```
+
+6. Update Auth Policy with API Token Location:
+
+    Update the **ExtAuthPolicy** to define the API Token location.
+
+    ```bash
+    kubectl patch extauthpolicy huggingface-apikey \
+    -n gloo-mesh-gateways \
+    --type=json \
+    -p='[{"op": "add", "path": "/spec/config/glooAuth/configs/0/apiKeyAuth/headersFromMetadataEntry", "value": {"x-api-key": {"name": "huggingface-api-key"}}}]'
+    ```
+
+7. Define **TransformationPolicy** to Add API Token to Request:
+
+    Instruct Gloo Mesh to add the API Token to the request by defining a **TransformationPolicy**.
+
+    ```bash
+    kubectl apply -f - <<'EOF'
+    apiVersion: trafficcontrol.policy.gloo.solo.io/v2
+    kind: TransformationPolicy
+    metadata:
+      name: huggingface-transformations
     spec:
       applyToRoutes:
       - route:
           labels:
-            route: frontend
+            route: huggingface
       config:
-        delay:
-          fixedDelay: 3s
-          percentage: 100
+        request:
+          injaTemplate:
+            headers:
+              Authorization:
+                text: 'Bearer {{ huggingface-api-key }}'
+            extractors:
+              huggingface-api-key:
+                header: 'x-api-key'
+                regex: '.*'
     EOF
     ```
 
-3. **Measure the Introduced Delay**: After applying the fault injection policy, use the same **curl** command to measure the response time again. The increase in 'Time Start Transfer' and 'Total Time' values will demonstrate the delay introduced by the Gloo Platform/Istio service mesh policy:
+8. Test the Setup:
+
+    Test the setup by providing user credentials and receiving a response from the AI upstream service, with the proper API Token provided by Gloo Mesh based on the configuration defined in this lab.
 
     ```bash
-    curl -o /dev/null -s -w "Time Connect: %{time_connect}s\nTime Start Transfer: %{time_starttransfer}s\nTotal Time: %{time_total}s\n" http://$GLOO_GATEWAY
+    curl http://$GLOO_AI_GATEWAY/huggingface \
+        -X POST \
+        -d '{"inputs": "Explain in 1-2 sentences why EKS value significantly increases when Gloo Mesh is added"}' \
+        -H 'Content-Type: application/json' \
+        -H "api-key: mysecretkey"
     ```
-The expected results of the executed commands are illustrated in the screenshot below:
 
-  ![Expected Output](/images/faultinject_output.png)
+    ![Expected Output](/images/ai_api_key.png)
+    > **Note:** The response in the screenshot is generated using a free model from Hugging Face. While it may offer amusing and sometimes whimsical outputs, it's worth noting that for more precise and insightful results, services like OpenAI's GPT models are a better choice. The configuration process is similar, although OpenAI's service comes at a cost. Remember, even AI has its budget options—and they come with their quirks!
 
 
-This exercise will help you understand and quantify the impact of traffic policies in a microservices environment.
+In this lab, we have effectively integrated secure API key handling for AI services within the Gloo Platform on EKS. By implementing authentication policies and leveraging Kubernetes secrets, we've ensured that sensitive AI API tokens are managed securely and automatically. This lab demonstrated how to streamline access to powerful AI capabilities, such as those provided by Hugging Face, without exposing API keys directly to users.
+
+The transformation policy we defined allows Gloo Mesh to handle the token insertion dynamically, ensuring seamless communication with AI services. These practices are crucial for maintaining robust security while leveraging AI and LLM services in modern applications. The skills acquired here will be instrumental in managing secure and efficient access to AI services, enabling you to build intelligent, AI-powered microservices architectures with confidence.

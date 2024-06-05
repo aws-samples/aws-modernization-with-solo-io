@@ -1,82 +1,108 @@
 ---
-title: "Lab 5 - Zero Trust"
+title: "Lab 5 - Authentication / API Key"
 chapter: true
 weight: 6
 ---
 
-## Lab 5 - Zero Trust
+## Lab 5 - Authentication / API Key 
 
 ![Gloo Platform EKS Workshop Architecture Lab 5](/images/gloo-platform-eks-workshop-lab5.png)
 
-Let's enforce a **Zero Trust** networking approach where all inbound traffic to any applications is denied by default.
+API key authentication is one of the easiest forms of authentication to implement. Simply create a Kubernetes secret that contains the key and reference it from the **ExtAuthPolicy**. It is recommended to label the secrets so that multiple can be selected and more can be added later. You can select any header to validate against.
 
-1. Add a default deny-all policy to the backend-apis-team workspace:
+1. Create two secrets that Gloo will validate against. One with the api-key **admin** and the other **developer**.
 
-    ```yaml
-    cat << EOF | kubectl apply -f -
-    apiVersion: security.policy.gloo.solo.io/v2
-    kind: AccessPolicy
-    metadata:
-      name: allow-nothing
-      namespace: online-boutique
-    spec:
-      applyToWorkloads:
-      - selector:
-          namespace: online-boutique
-      config:
-        authn:
-          tlsMode: STRICT
-        authz: {}
-    EOF
-    ```
-
-2. Refresh the Online Boutique webpage (**echo http://$GLOO_GATEWAY**). You should see an error with message **"RBAC: access denied"**
-
-3. Add AccessPolicy to explicitly allow traffic between the gateway and the frontend application:
-
-    ```yaml
+    ```bash
     kubectl apply -f - <<EOF
-    apiVersion: security.policy.gloo.solo.io/v2
-    kind: AccessPolicy
+    apiVersion: v1
+    kind: Secret
     metadata:
-      name: frontend-api-access
-      namespace: online-boutique
-    spec:
-      applyToDestinations:
-      - selector:
-          labels: 
-            app: frontend
-      config:
-        authz:
-          allowedClients:
-          - serviceAccountSelector:
-              labels:
-                app: istio-ingressgateway
-              namespace: gloo-mesh-gateways
+      name: solo-admin
+      namespace: gloo-mesh-gateways
+      labels:
+        api-keyset: httpbin-users
+    type: extauth.solo.io/apikey
+    data:
+      api-key: $(echo -n "admin" | base64)
+    ---
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: solo-developer
+      namespace: gloo-mesh-gateways
+      labels:
+        api-keyset: httpbin-users
+    type: extauth.solo.io/apikey
+    data:
+      api-key: $(echo -n "developer" | base64)
     EOF
     ```
 
-3. Add AccessPolicy to explicitly allow traffic between the microservices online-boutique workspace. As you can see, these policies can be very flexible.
+2. Create the API key **ExtAuthPolicy** that will match header **x-api-key** values againt the secrets created above. The **ExtAuthServer** resource configures
+where authorization checks will be performed:
 
-    ```yaml
+    ```bash
     kubectl apply -f - <<EOF
-    apiVersion: security.policy.gloo.solo.io/v2
-    kind: AccessPolicy
+    apiVersion: admin.gloo.solo.io/v2
+    kind: ExtAuthServer
     metadata:
-      name: in-namespace-access
-      namespace: online-boutique
+      name: ext-auth-server
+      namespace: gloo-mesh-gateways
     spec:
-      applyToDestinations:
-      - selector:
-          namespace: online-boutique
+      destinationServer:
+        ref:
+          cluster: cluster-1
+          name: ext-auth-service
+          namespace: gloo-mesh
+        port:
+          name: grpc
+    ---
+    apiVersion: security.policy.gloo.solo.io/v2
+    kind: ExtAuthPolicy
+    metadata:
+      name: products-apikey
+      namespace: gloo-mesh-gateways
+    spec:
+      applyToRoutes:
+      - route:
+          labels:
+            route: products
       config:
-        authz:
-          allowedClients:
-          - serviceAccountSelector:
-              namespace: online-boutique
+        server:
+          name: ext-auth-server
+          namespace: gloo-mesh-gateways
+          cluster: cluster-1
+        glooAuth:
+          configs:
+          - apiKeyAuth:
+              headerName: x-api-key
+              labelSelector:
+                api-keyset: httpbin-users
     EOF
     ```
-4. Refresh the page (**echo http://$GLOO_GATEWAY**) again. You should get the store home page back.
 
-In this lab, we effectively implemented a Zero Trust network security model, where we began by denying all inbound traffic by default. Through careful configuration of AccessPolicy rules, we selectively allowed necessary communication between the gateway, the frontend, and other microservices within the online-boutique workspace. This approach not only bolstered our network's security but also demonstrated the practicality and flexibility of Zero Trust principles in a cloud-native ecosystem.
+3. Call httpbin without an api key and you will get a **401 unauthorized message**:
 
+    ```bash
+    curl -i http://$GLOO_GATEWAY/products
+    ```
+
+4. Call httpbin with the developer api key **x-api-key: developer**:
+
+    ```bash
+    curl -H "x-api-key: developer" http://$GLOO_GATEWAY/products
+    ```
+
+5. Call httpbin with the admin api key **x-api-key: admin**:
+
+    ```bash
+    curl -H "x-api-key: admin" http://$GLOO_GATEWAY/products
+    ```
+
+The expected results of the executed commands are illustrated in the screenshot below:
+
+  ![Expected Output](/images/authorization_outputs.png)
+
+In this lab, we've taken significant steps in enhancing the security of our application by implementing API key authentication. By creating Kubernetes secrets for different user roles and setting up the ExtAuthPolicy, we've established a reliable method to secure and manage access to our services. This lab has not only highlighted the ease of setting up basic authentication but also emphasized the importance of robust security practices in microservices architectures.
+
+As we move forward, the concepts and skills we've acquired here will be crucial in understanding and implementing more comprehensive security strategies.
