@@ -1,7 +1,7 @@
 ---
 title: "Gloo Platform EKS Workshop"
 chapter: true
-weight: 2
+weight: 3
 ---
 
 # Introduction

@@ -1,7 +1,7 @@
 ---
 title: "Lab 9 - Dashboard"
 chapter: true
-weight: 10
+weight: 12
 ---
 
 ## Lab 9 - Dashboard
@@ -11,9 +11,13 @@ Let's conclude this workshop by looking at the Gloo Dashboard again and explorin
 1. Launch the dashboard:
   
      ```
-     meshctl dashboard
-     ```
-  
+    # For localhost access you can use meshctl
+    meshctl dashboard
+
+    # if you run commands on remote station kubectl allows access to be more open
+    kubectl port-forward -n gloo-mesh svc/gloo-mesh-ui 8090:8090 --address 0.0.0.0
+    ```
+     
 2. The homepage shows an at-a-glance look at the health of workspaces and clusters that make up your Gloo setup. In this workshop, we only used a single cluster and a single workspace, but Gloo Platform is intended to scale to multiple clusters and provide isolation between teams using Workspaces. 
 
    ![](/images/dashboard-home.png)
