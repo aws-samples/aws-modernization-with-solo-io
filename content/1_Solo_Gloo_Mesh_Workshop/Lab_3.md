@@ -1,7 +1,7 @@
 ---
 title: "Lab 3 - Routing workloads"
 chapter: true
-weight: 4
+weight: 6
 ---
 
 ## Lab 3 - Routing to other workloads

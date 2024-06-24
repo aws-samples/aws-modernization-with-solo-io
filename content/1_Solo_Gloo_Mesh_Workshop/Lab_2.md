@@ -1,7 +1,7 @@
 ---
 title: "Lab 2 - Deploy & Expose Online Boutique Sample Application"
 chapter: true
-weight: 3
+weight: 5
 ---
 
 ## Lab 2 - Deploy & Expose Online Boutique Sample Application

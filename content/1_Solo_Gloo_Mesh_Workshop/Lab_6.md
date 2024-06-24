@@ -1,7 +1,7 @@
 ---
 title: "Lab 6 - AI API Key Handling"
 chapter: true
-weight: 7
+weight: 9
 ---
 
 ## Lab 6 - AI API Key Handling

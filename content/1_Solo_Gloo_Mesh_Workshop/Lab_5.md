@@ -1,7 +1,7 @@
 ---
 title: "Lab 5 - Authentication / API Key"
 chapter: true
-weight: 6
+weight: 8
 ---
 
 ## Lab 5 - Authentication / API Key 

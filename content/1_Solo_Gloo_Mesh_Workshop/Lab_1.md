@@ -1,7 +1,7 @@
 ---
 title: "Lab 1 - Deploy Gloo Platform"
 chapter: true
-weight: 2
+weight: 4
 ---
 
 ## Lab 1 - Deploy Gloo Platform
@@ -13,38 +13,49 @@ Gloo Platform provides a management plane to interact with the service mesh and 
 1. Set this environment variable to the Gloo license key.
 
     ```bash
+    AWS_REGION=<your AWS Region>
     export GLOO_PLATFORM_LICENSE_KEY=<licence_key>
     ```
 
-2. Install **meshctl**, the Gloo command line tool for bootstrapping Gloo Platform, registering clusters, describing configured resources, and more. Be sure to download version 2.4.4, which uses the latest Gloo Mesh installation values.
+2. Connect to the AWS EKS Cluster: 
+
+   ```bash
+   aws eks --region ${AWS_REGION} update-kubeconfig --name solo-io-workshop-cluster-1
+   ```
+
+3. Install **meshctl**, the Gloo command line tool for bootstrapping Gloo Platform, registering clusters, describing configured resources, and more.
 
     ```bash
     curl -sL https://run.solo.io/meshctl/install | GLOO_MESH_VERSION=v2.5.4 sh -
     export PATH=$HOME/.gloo-mesh/bin:$PATH
     ```
 
-3. Install Gloo Platform. This command uses profiles to install the control plane components, such as the management server and Prometheus server, and the data plane components, such as the agent, managed Istio service mesh, rate limit server, and external auth server, in your cluster.
+4. Install Gloo Platform. This command uses profiles to install the control plane components, such as the management server and Prometheus server, and the data plane components, such as the agent, managed Istio service mesh, rate limit server, and external auth server, in your cluster.
 
-    ```
+    ```bash
     meshctl install --profiles gloo-mesh-single,ratelimit,extauth \
       --set common.cluster=cluster-1 \
       --set licensing.glooMeshLicenseKey=$GLOO_PLATFORM_LICENSE_KEY \
       --set demo.manageAddonNamespace=true
    ```
 
-4. Wait 2-3 minutes for all components to install. Use **meshctl check** to check the status. 
+5. Wait 2-3 minutes for all components to install. Use **meshctl check** to check the status. 
 
     ![](/images/meshctl_check.png)
 
-5. Once everything is ready, view the Gloo Platform Dashboard.
+6. Once everything is ready, view the Gloo Platform Dashboard.
 
     ```
+    # For localhost access you can use meshctl
     meshctl dashboard
+
+    # if you run commands on remote station kubectl allows access to be more open
+    kubectl port-forward -n gloo-mesh svc/gloo-mesh-ui 8090:8090 --address 0.0.0.0
     ```
 
     ![](/images/dashboard-1.png)
 
-6. As you might have noticed there is no Workspaces created yet. Let's create a **Global Workspace**. In the case of this Lab, to simplify the deployment, include all services within the same workspace. This means that they all share the same service discovery policies and security. This is only recommended for the workshop to allow beginners learning Gloo Mesh.
+7. As you might have noticed there is no Workspaces created yet. Let's create a **Global Workspace**. In the case of this Lab, to simplify the deployment, include all services within the same workspace. This means that they all share the same service discovery policies and security. This is only recommended for the workshop to allow beginners learning Gloo Mesh.
 
     ```bash
     kubectl apply -f - <<EOF
@@ -74,7 +85,7 @@ Gloo Platform provides a management plane to interact with the service mesh and 
     EOF
     ```
 
-7. Wait for the Gloo Gateway Service to become ready and set its IP address to a variable for us to use later:
+8. Wait for the Gloo Gateway Service to become ready and set its IP address to a variable for us to use later:
 
     ```bash
     export GLOO_GATEWAY=$(kubectl -n gloo-mesh-gateways get svc istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].*}')
