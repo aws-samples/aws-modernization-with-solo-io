@@ -1,7 +1,7 @@
 ---
 title: "Lab 4 - AI Integration"
 chapter: true
-weight: 5
+weight: 7
 ---
 
 ## Lab 4 - AI Integration
@@ -125,7 +125,7 @@ In this lab, we will configure the gateway to forward requests to an AI external
    - Assign the token received from your instructor or issued [online](https://huggingface.co/settings/tokens) to an environmental variable:
 
     ```bash
-    export HF_API_TOKEN=<huggingface token>
+    export HF_API_TOKEN=<Hugging Face Token>
     ```
 
    - Assign the Ingress gateway address and port to an environment variable:

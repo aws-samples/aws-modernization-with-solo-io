@@ -1,7 +1,7 @@
 ---
 title: "Lab 8 - Traffic Policies"
 chapter: true
-weight: 9
+weight: 11
 ---
 
 ## Lab 8 - Traffic Policies

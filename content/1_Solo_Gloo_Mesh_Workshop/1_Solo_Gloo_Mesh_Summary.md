@@ -1,7 +1,7 @@
 ---
 title: "Workshop Summary"
 chapter: true
-weight: 11
+weight: 13
 ---
 
 ## Workshop Summary
